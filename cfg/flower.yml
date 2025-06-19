@@ -3,14 +3,14 @@ CONFIG_NAME: 'flower'
 DATASET_NAME: 'flower'
 DATA_DIR: 'data/flower'
 GPU_ID: 0
-WORKERS: 4
+WORKERS: 15
 
 # Training options
 TRAIN:
     FLAG: True
     NET_G: ''
     B_NET_D: True
-    BATCH_SIZE: 8
+    BATCH_SIZE: 32
     MAX_EPOCH: 600
     SNAPSHOT_INTERVAL: 5
     DISCRIMINATOR_LR: 0.0002
@@ -48,10 +48,10 @@ IMAGE:
 
 # Evaluation options
 EVAL:
-    TEST_INTERVAL: 1
+    TEST_INTERVAL: 5
     SAMPLE_TIMES: 3
     GEN_INTERVAL: 5
-    SAVE_INTERVAL: 10
+    SAVE_INTERVAL: 5
     ALPHA: 0.8
 
 # Directories
@@ -77,7 +77,7 @@ trunc_rate: 0.8
 generator_init: 'xavier'
 discriminator_init: 'xavier'
 sample_times: 1
-test_interval: 1
+test_interval: 5
 gen_interval: 5
 save_interval: 5
 val_save_dir: './eval_results'

@@ -163,13 +163,13 @@ def main(args):
 if __name__ == "__main__":
     args = merge_args_yaml(parse_args())
     # Force num_workers to 2 regardless of config file
-    args.num_workers = 2
+    args.num_workers = 15
     # Force batch size to 12 regardless of config file
-    args.batch_size = 12
+    args.batch_size = 32
     
     # Override config values as requested
-    args.num_workers = 4
-    args.test_interval = 1
+    args.num_workers = 15
+    args.test_interval = 5
     
     # set seed
     if args.manual_seed is None:

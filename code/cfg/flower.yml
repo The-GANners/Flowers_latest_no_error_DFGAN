@@ -3,14 +3,14 @@ ONFIG_NAME: 'flower'
 DATASET_NAME: 'flower'
 DATA_DIR: 'data/flower'
 GPU_ID: 0
-WORKERS: 4
+WORKERS: 15
 
 # Training options
 TRAIN:
     FLAG: True
     NET_G: ''
     B_NET_D: True
-    BATCH_SIZE: 2
+    BATCH_SIZE: 32
     MAX_EPOCH: 600
     SNAPSHOT_INTERVAL: 5
     DISCRIMINATOR_LR: 0.0002
@@ -41,10 +41,10 @@ TEXT:
 
 # Evaluation options
 EVAL:
-    TEST_INTERVAL: 1
+    TEST_INTERVAL: 5
     SAMPLE_TIMES: 3
     GEN_INTERVAL: 10
-    SAVE_INTERVAL: 10
+    SAVE_INTERVAL: 5
     ALPHA: 0.8
 
 # Image options
