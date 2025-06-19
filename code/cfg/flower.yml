@@ -1,0 +1,89 @@
+ONFIG_NAME: 'flower'
+
+DATASET_NAME: 'flower'
+DATA_DIR: 'data/flower'
+GPU_ID: 0
+WORKERS: 4
+
+# Training options
+TRAIN:
+    FLAG: True
+    NET_G: ''
+    B_NET_D: True
+    BATCH_SIZE: 2
+    MAX_EPOCH: 600
+    SNAPSHOT_INTERVAL: 5
+    DISCRIMINATOR_LR: 0.0002
+    GENERATOR_LR: 0.0002
+    GENERATOR_WEIGHT_DECAY: 0.0
+    DISCRIMINATOR_WEIGHT_DECAY: 0.0
+    SMOOTH:
+        GAMMA1: 4.0
+        GAMMA3: 10.0
+        GAMMA2: 5.0
+        LAMBDA: 1.0
+
+# GAN options
+GAN:
+    DF_DIM: 32
+    GF_DIM: 64
+    Z_DIM: 100
+    R_NUM: 2
+    B_CONDITION: True
+
+TEXT:
+    EMBEDDING_DIM: 256
+    CAPTIONS_PER_IMAGE: 10
+    WORDS_NUM: 18
+    # Use your flower encoders
+    DAMSM_NAME: 'data/flower/DAMSMencoder/text_encoder200.pth'
+    CNN_ENCODER_PATH: 'data/flower/DAMSMencoder/image_encoder200.pth'
+
+# Evaluation options
+EVAL:
+    TEST_INTERVAL: 1
+    SAMPLE_TIMES: 3
+    GEN_INTERVAL: 10
+    SAVE_INTERVAL: 10
+    ALPHA: 0.8
+
+# Image options
+IMAGE:
+    TARGET_SIZE: 256
+    SAVE_IMAGE: True
+    INTERPOLATION: 'bilinear'
+    COLOR_FORMAT: 'RGB'
+    PROCESSING_BACKEND: 'pil'
+    SAVE_PERIOD: 5
+
+# Directories
+SAMPLES_DIR: './samples'
+
+# Model parameters
+model: 'dfgan'
+image_size: 256
+conditioning_dim: 256
+z_dim: 100
+channels_noise: 100
+ngf: 64
+ndf: 64
+z_distribution: 'normal'
+npz_path: 'data/flower/npz/flower_val.npz'
+
+# Runtime parameters
+manual_seed: 100
+cuda: True
+device: 'cuda'
+truncation: True
+trunc_rate: 0.86
+generator_init: 'xavier'
+discriminator_init: 'xavier'
+sample_times: 1
+test_interval: 5
+gen_interval: 5
+save_interval: 5
+val_save_dir: './eval_results'
+samples_save_dir: './samples'
+nf: 64
+cond_dim: 256
+ch_size: 3

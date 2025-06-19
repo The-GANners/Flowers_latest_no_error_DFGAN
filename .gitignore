@@ -1,0 +1,13 @@
+**/logs
+**/logs*
+**/data/*
+**/checkpoints
+**/imgs*
+**/vals*
+**/samples*
+*.zip
+**/saved_models/*
+**/__pycache__**
+.venv
+Images/
+text_c10/
