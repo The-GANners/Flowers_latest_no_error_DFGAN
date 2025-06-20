@@ -30,9 +30,9 @@ def parse_args():
                         help='number of workers(default: 15)')
     parser.add_argument('--stamp', type=str, default='normal',
                         help='the stamp of model')
-    parser.add_argument('--imsize', type=int, default=256,
+    parser.add_argument('--imsize', type=int, default=256,  # Changed back to 256 as requested
                         help='input imsize')
-    parser.add_argument('--batch_size', type=int, default=12,  # <-- set default to 12
+    parser.add_argument('--batch_size', type=int, default=14,  # Increased to 14 to use full 12GB
                         help='batch size')
     parser.add_argument('--train', type=bool, default=True,
                         help='if train model')
@@ -42,7 +42,7 @@ def parse_args():
                         help='the model for resume training')
     parser.add_argument('--multi_gpus', type=bool, default=False,
                         help='if multi-gpu training under ddp')
-    parser.add_argument('--gpu_id', type=int, default=1,
+    parser.add_argument('--gpu_id', type=int, default=0,  # Changed to GPU 0
                         help='gpu id')
     parser.add_argument('--local_rank', default=-1, type=int,
                         help='node rank for distributed training')
@@ -100,7 +100,7 @@ def main(args):
     
     # Change npz_path to the correct file for flower dataset
     if hasattr(args, 'DATASET_NAME') and str(args.DATASET_NAME).lower() == 'flower':
-        args.npz_path = r"C:\Users\nanda\OneDrive\Desktop\DF-GAN\data\flower\npz\flower_val256_FIDK0.npz"
+        args.npz_path = r"C:\Users\NMAMIT\Desktop\FYP 2025 13\Flowers_latest_no_error_DFGAN\data\flower\npz\flower_val256_FIDK0.npz"
         
     m1, s1 = load_npz(args.npz_path)
     # load from checkpoint
@@ -131,27 +131,33 @@ def main(args):
         if (args.multi_gpus==True):
             sampler.set_epoch(epoch)
         start_t = time.time()
+
+        # Monitor GPU memory
+        if epoch % 10 == 0:
+            print(f"GPU Memory: {torch.cuda.memory_allocated()/1024**3:.2f}GB / {torch.cuda.memory_reserved()/1024**3:.2f}GB")
+
         # training
         args.current_epoch = epoch
-        torch.cuda.empty_cache()
+        torch.cuda.empty_cache()  # Clear before training
         train(train_dl, netG, netD, netC, text_encoder, optimizerG, optimizerD, args)
-        #torch.cuda.empty_cache()
-        # save
-        if epoch%save_interval==0:
+        torch.cuda.empty_cache()  # Clear after training
+        
+        # save - save every 5 epochs
+        if epoch % save_interval == 0:
             save_models(netG, netD, netC, optimizerG, optimizerD, epoch, args.multi_gpus, args.model_save_file)
-        # sample
-        if epoch%gen_interval==0:
+        # sample - more frequent sampling
+        if epoch % gen_interval == 0:  # Generate samples every 8 epochs (removed * 3)
             sample(fixed_z, fixed_sent, netG, args.multi_gpus, epoch, args.img_save_dir, writer)
-        # end epoch
-        # test
-        if epoch%test_interval==0:
+        # test - more frequent testing
+        if epoch % test_interval == 0:  # Test every 15 epochs (removed * 3)
             torch.cuda.empty_cache()
             fid = test(valid_dl, text_encoder, netG, args.device, m1, s1, epoch, args.max_epoch, \
                         args.sample_times, args.z_dim, args.batch_size, args.truncation, args.trunc_rate)
+
         if (args.multi_gpus==True) and (get_rank() != 0):
             None
         else:
-            if epoch%test_interval==0:
+            if epoch % test_interval == 0:  # Update condition to match new test frequency
                 writer.add_scalar('FID', fid, epoch)
                 print('The %d epoch FID: %.2f'%(epoch,fid))
             end_t = time.time()
@@ -162,14 +168,36 @@ def main(args):
 
 if __name__ == "__main__":
     args = merge_args_yaml(parse_args())
-    # Force num_workers to 2 regardless of config file
-    args.num_workers = 15
-    # Force batch size to 12 regardless of config file
-    args.batch_size = 32
+    # Optimize for speed while using full 12GB VRAM
+    args.num_workers = 8  # Keep as is for speed
+    args.batch_size = 32   # Keep as is
+    args.imsize = 256
+    args.pin_memory = True
+    args.persistent_workers = True
+
+    # --- Force nf and trunc_rate for flowers dataset ---
+    if hasattr(args, 'DATASET_NAME') and str(args.DATASET_NAME).lower() == 'flower':
+        args.nf = 32
+        args.trunc_rate = 0.88
+
+    # Set intervals for optimal training speed
+    args.test_interval = 1  # Test every 15 epochs
+    args.gen_interval = 8    # Generate samples every 8 epochs
+    args.save_interval = 5   # Save every 5 epochs
     
-    # Override config values as requested
-    args.num_workers = 15
-    args.test_interval = 5
+    # Enable memory and speed optimizations
+    torch.backends.cudnn.benchmark = True
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
+    
+    # Additional speed optimizations
+    torch.autograd.set_detect_anomaly(False)  # Disable anomaly detection for speed
+    torch.backends.cudnn.deterministic = False  # Allow non-deterministic for speed
+    
+    # Maximize GPU utilization
+    torch.cuda.empty_cache()
+    if torch.cuda.is_available():
+        torch.cuda.set_per_process_memory_fraction(0.98)  # Use 98% of available VRAM
     
     # set seed
     if args.manual_seed is None:
@@ -202,5 +230,3 @@ if __name__ == "__main__":
     args.local_rank = 0  # Always 0 for single GPU/CPU
     args.multi_gpus = False  # Force single GPU mode
     main(args)
-
-
